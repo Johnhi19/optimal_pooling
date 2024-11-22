@@ -115,43 +115,58 @@ def adaptive_pooling(population, low_prevalence_pool_size, high_prevalence_pool_
     
     return total_tests, tested_population
 
+def evaluate_prevalence_impact(prevalence_rates, population_size, pool_size, false_positive_rate, false_negative_rate, prevalence_threshold=0.1):
+    """
+    Evaluate specificity, sensitivity, false-negative rate, and cost efficiency
+    for different prevalence rates across pooling strategies.
+    """
+    results = {}
+
+    for prevalence in prevalence_rates:
+        # Generate population for the given prevalence
+        population = generate_population(population_size, prevalence)
+        prevalence_results = {}
+
+        # Fixed-size Pooling
+        total_tests, tested_population = fixed_size_pooling(population, pool_size, false_positive_rate, false_negative_rate)
+        metrics = evaluate_metrics(population, tested_population, total_tests)
+        prevalence_results["Fixed-size Pooling"] = metrics
+
+        # Hierarchical Pooling
+        total_tests, tested_population = hierarchical_pooling(population, pool_size, false_positive_rate, false_negative_rate)
+        metrics = evaluate_metrics(population, tested_population, total_tests)
+        prevalence_results["Hierarchical Pooling"] = metrics
+
+        # Adaptive Pooling
+        total_tests, tested_population = adaptive_pooling(population, low_prevalence_pool_size=pool_size, high_prevalence_pool_size=pool_size, 
+                                                          prevalence_threshold=prevalence_threshold, 
+                                                          false_positive_rate=false_positive_rate, 
+                                                          false_negative_rate=false_negative_rate)
+        metrics = evaluate_metrics(population, tested_population, total_tests)
+        prevalence_results["Adaptive Pooling"] = metrics
+
+        # Store results for this prevalence rate
+        results[prevalence] = prevalence_results
+
+    return results
+
 # Simulation parameters
 population_size = 1000000
-prevalence = 0.05  # 5% infection rate
+prevalence_rates = [0.01, 0.05, 0.1, 0.2]  # 1%, 5%, 10%, and 20% infection rates
 pool_size = 10
-low_prevalence_pool_size = 15
-high_prevalence_pool_size = 5
-prevalence_threshold = 0.1
 false_positive_rate = 0.01
 false_negative_rate = 0.05
 
-# Generate a population
-population = generate_population(population_size, prevalence)
-
-# Simulate each strategy
-results = {}
-
-# Individual Testing
-total_tests, tested_population = individual_testing(population, false_positive_rate, false_negative_rate)
-results['Individual Testing'] = evaluate_metrics(population, tested_population, total_tests)
-
-# Fixed-size Pooling
-total_tests, tested_population = fixed_size_pooling(population, pool_size, false_positive_rate, false_negative_rate)
-results['Fixed-size Pooling'] = evaluate_metrics(population, tested_population, total_tests)
-
-# Hierarchical Pooling
-total_tests, tested_population = hierarchical_pooling(population, pool_size, false_positive_rate, false_negative_rate)
-results['Hierarchical Pooling'] = evaluate_metrics(population, tested_population, total_tests)
-
-# Adaptive Pooling
-total_tests, tested_population = adaptive_pooling(population, low_prevalence_pool_size, high_prevalence_pool_size, prevalence_threshold, false_positive_rate, false_negative_rate)
-results['Adaptive Pooling'] = evaluate_metrics(population, tested_population, total_tests)
+# Evaluate the impact of prevalence on evaluation metrics
+prevalence_metrics_results = evaluate_prevalence_impact(prevalence_rates, population_size, pool_size, false_positive_rate, false_negative_rate)
 
 # Display results
-for strategy, (sensitivity, specificity, fnr, cost_effectiveness) in results.items():
-    print(f"{strategy}:")
-    print(f"  Sensitivity: {sensitivity:.2f}")
-    print(f"  Specificity: {specificity:.2f}")
-    print(f"  False Negative Rate: {fnr:.2f}")
-    print(f"  Cost Effectiveness (Tests per Person): {cost_effectiveness:.2f}")
-    print()
+print("Impact of Prevalence Rates on Evaluation Metrics:")
+for prevalence, strategies in prevalence_metrics_results.items():
+    print(f"\nPrevalence Rate: {prevalence*100:.0f}%")
+    for strategy, metrics in strategies.items():
+        print(f"  {strategy}:")
+        print(f"    Sensitivity: {metrics[0]:.2f}")
+        print(f"    Specificity: {metrics[1]:.2f}")
+        print(f"    False-negative Rate: {metrics[2]:.2f}")
+        print(f"    Cost Efficiency: {metrics[3]:.2f}")
