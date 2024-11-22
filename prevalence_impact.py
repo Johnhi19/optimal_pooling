@@ -77,48 +77,55 @@ def optimize_pooling_strategy(strategy_function, population, pool_size_range, fa
     
     return best_pool_size, best_total_tests, results
 
+def test_prevalence_rates(prevalence_rates, population_size, pool_size_range, false_positive_rate, false_negative_rate, prevalence_threshold=0.1):
+    """
+    Evaluate the performance of pooling strategies across different prevalence rates.
+    """
+    results = {}
+
+    for prevalence in prevalence_rates:
+        # Generate population for the given prevalence
+        population = generate_population(population_size, prevalence)
+        prevalence_results = {}
+
+        # Optimize Fixed-size Pooling
+        best_pool_fixed, best_tests_fixed, _ = optimize_pooling_strategy(
+            fixed_size_pooling, population, pool_size_range, false_positive_rate, false_negative_rate
+        )
+        prevalence_results["Fixed-size Pooling"] = {"Optimal Pool Size": best_pool_fixed, "Total Tests": best_tests_fixed}
+
+        # Optimize Hierarchical Pooling
+        best_pool_hierarchical, best_tests_hierarchical, _ = optimize_pooling_strategy(
+            hierarchical_pooling, population, pool_size_range, false_positive_rate, false_negative_rate
+        )
+        prevalence_results["Hierarchical Pooling"] = {"Optimal Pool Size": best_pool_hierarchical, "Total Tests": best_tests_hierarchical}
+
+        # Optimize Adaptive Pooling
+        best_pool_adaptive, best_tests_adaptive, _ = optimize_pooling_strategy(
+            adaptive_pooling, population, pool_size_range, false_positive_rate, false_negative_rate,
+            prevalence_threshold=prevalence_threshold
+        )
+        prevalence_results["Adaptive Pooling"] = {"Optimal Pool Size": best_pool_adaptive, "Total Tests": best_tests_adaptive}
+
+        # Store results for this prevalence rate
+        results[prevalence] = prevalence_results
+
+    return results
+
 # Simulation parameters
-population_size = 1000000
-prevalence = 0.05
+population_size = 100000
+prevalence_rates = [0.01, 0.05, 0.1, 0.2]  # 1%, 5%, 10%, and 20% infection rates
 false_positive_rate = 0.01
 false_negative_rate = 0.05
-pool_size_range = range(2, 100)
+pool_size_range = range(2, 200)  # Test pool sizes from 2 to 100
 prevalence_threshold = 0.1
 
-# Generate a population
-population = generate_population(population_size, prevalence)
+# Test pooling strategies across different prevalence rates
+prevalence_results = test_prevalence_rates(prevalence_rates, population_size, pool_size_range, false_positive_rate, false_negative_rate)
 
-# Optimize Fixed-size Pooling
-best_pool_fixed, best_tests_fixed, results_fixed = optimize_pooling_strategy(
-    fixed_size_pooling, population, pool_size_range, false_positive_rate, false_negative_rate
-)
-
-# Optimize Hierarchical Pooling
-best_pool_hierarchical, best_tests_hierarchical, results_hierarchical = optimize_pooling_strategy(
-    hierarchical_pooling, population, pool_size_range, false_positive_rate, false_negative_rate
-)
-
-# Optimize Adaptive Pooling
-best_pool_adaptive, best_tests_adaptive, results_adaptive = optimize_pooling_strategy(
-    adaptive_pooling, population, pool_size_range, false_positive_rate, false_negative_rate,
-    prevalence_threshold=prevalence_threshold
-)
-
-# Display optimization results
-print(f"Fixed-size Pooling: Optimal Pool Size = {best_pool_fixed}, Total Tests = {best_tests_fixed}")
-print(f"Hierarchical Pooling: Optimal Pool Size = {best_pool_hierarchical}, Total Tests = {best_tests_hierarchical}")
-print(f"Adaptive Pooling: Optimal Pool Size = {best_pool_adaptive}, Total Tests = {best_tests_adaptive}")
-
-# Detailed results for each pooling strategy
-print("\nDetailed Results by Pool Size:")
-print("Fixed-size Pooling:")
-for pool_size, total_tests in results_fixed.items():
-    print(f"  Pool Size {pool_size}: Total Tests = {total_tests}")
-
-print("\nHierarchical Pooling:")
-for pool_size, total_tests in results_hierarchical.items():
-    print(f"  Pool Size {pool_size}: Total Tests = {total_tests}")
-
-print("\nAdaptive Pooling:")
-for pool_size, total_tests in results_adaptive.items():
-    print(f"  Pool Size {pool_size}: Total Tests = {total_tests}")
+# Display results
+print("Results for Different Prevalence Rates:")
+for prevalence, strategies in prevalence_results.items():
+    print(f"\nPrevalence Rate: {prevalence*100:.0f}%")
+    for strategy, metrics in strategies.items():
+        print(f"  {strategy}: Optimal Pool Size = {metrics['Optimal Pool Size']}, Total Tests = {metrics['Total Tests']}")
