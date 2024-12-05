@@ -43,9 +43,6 @@ The code requires the following dependencies:
 - **NumPy** (install using `pip install numpy`)
 
 ### Simulation Script
-The main simulation script is `optimal_pool_size.py`. It:
-1. Generates a synthetic population with a specified prevalence of infection.
-2. Simulates three pooling strategies: Fixed-size, Hierarchical, and Adaptive.
-3. Optimizes the pool size for each strategy to minimize the total number of tests.
-4. Evaluates each strategy based on key metrics, including sensitivity, specificity, and cost-effectiveness.
+The main simulation script is `test_simulation.py`. It contains all the important functions used by the other analyses.
+
 
