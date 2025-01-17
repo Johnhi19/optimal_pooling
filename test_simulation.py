@@ -193,7 +193,7 @@ class TestSimulation:
         
         for pool_size in pool_size_range:
             if strategy_function == self.adaptive_pooling:
-                total_tests, _ = strategy_function(population, pool_size, pool_size, **kwargs, false_positive_rate=false_positive_rate, false_negative_rate=false_negative_rate)
+                total_tests, _ = strategy_function(population, pool_size, pool_size + 10, **kwargs, false_positive_rate=false_positive_rate, false_negative_rate=false_negative_rate)
             else:
                 total_tests, _ = strategy_function(population, pool_size, false_positive_rate, false_negative_rate)
             results[pool_size] = total_tests
